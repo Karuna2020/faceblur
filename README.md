@@ -7,7 +7,7 @@ Recognize and blur all faces in photo.
 1. [face recognition](https://github.com/ageitgey/face_recognition)
 
 ## Usage
-python faceblur [source image/source folder] [destination image/destination folder]
+python faceblur.py [source image/source folder] [destination image/destination folder]
 
 Blur all faces in a photo or all photo in source folder.
 
