@@ -26,6 +26,7 @@ def face_blur(src_img, dest_img, zoom_in=1):
         print("%s:There are %s faces at " % (src_img, len(face_locations)), face_locations)
     else:
         print('%s:There are no any face.' % (src_img))
+        cv2.imwrite(dest_img, cv2.imread(src_img))
         return False
 
     #Blur all face
@@ -41,7 +42,7 @@ def face_blur(src_img, dest_img, zoom_in=1):
         face_image = photo[top:bottom, left:right]
 
         # Blur the face image
-        face_image = cv2.GaussianBlur(face_image, (21, 21), 0)
+        face_image = cv2.GaussianBlur(face_image, (31, 31), 0)
 
         # Put the blurred face region back into the frame image
         photo[top:bottom, left:right] = face_image
