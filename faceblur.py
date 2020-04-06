@@ -4,7 +4,14 @@ Recognize and blur all faces in photos.
 import os
 import sys
 import cv2
-import face_recognition
+import face_recognition 
+from joblib import Parallel, delayed
+import multiprocessing
+
+try:
+    NUM_CPUS = multiprocessing.cpu_count()
+except NotImplementedError:
+    NUM_CPUS = 2   # arbitrary default
 
 def face_blur(src_img, dest_img, zoom_in=1):
     '''
@@ -54,25 +61,27 @@ def face_blur(src_img, dest_img, zoom_in=1):
 
     return True
 
+def blur_photo(root, new_root_path, f):
+    ext = os.path.splitext(f)[1]
+    if ext == '.jpg':
+        srcfile_path = os.path.join(root, f)
+        destfile_path = os.path.join(new_root_path, os.path.basename(f))
+        face_blur(srcfile_path, destfile_path)
+
 def blur_all_photo(src_dir, dest_dir):
     '''
     Blur all faces in the source directory photos and copy them to destination directory
     '''
     src_dir = os.path.abspath(src_dir)
     dest_dir = os.path.abspath(dest_dir)
-    print('Search and blur human faces in %s''s photo.' % src_dir)
+    print('Search and blur human faces in %s''s photo. Using %s CPUs' % (src_dir, NUM_CPUS))
     for root, subdirs, files in os.walk(src_dir):
         root_relpath = os.path.relpath(root, src_dir)
         new_root_path = os.path.realpath(os.path.join(dest_dir, root_relpath))
         os.makedirs(new_root_path, exist_ok=True)
-
-        for filename in files:
-            ext = os.path.splitext(filename)[1]
-            if ext == '.jpg':
-                srcfile_path = os.path.join(root, filename)
-                destfile_path = os.path.join(new_root_path, os.path.basename(filename))
-                face_blur(srcfile_path, destfile_path)
-
+        converted = Parallel(n_jobs=NUM_CPUS)(delayed(blur_photo)(root, new_root_path, f) for f in files)
+        converted = [blur_photo(root, new_root_path, f) for f in files]
+            
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print('faceblur v1.0.0 (c) telesoho.com')
